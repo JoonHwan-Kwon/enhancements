@@ -45,9 +45,6 @@ _Authors:_
       - [Implementation sketch](#implementation-sketch)
       - [Example pod specs and interpretation](#example-pod-specs-and-interpretation)
       - [Example scenarios and interactions](#example-scenarios-and-interactions)
-    - [Policy 3: &quot;dynamic&quot; cpuset control](#policy-3-dynamic-cpuset-control)
-      - [Implementation sketch](#implementation-sketch-1)
-      - [Example pod specs and interpretation](#example-pod-specs-and-interpretation-1)
 - [Operations and observability](#operations-and-observability)
 - [Practical challenges](#practical-challenges)
 - [Implementation roadmap](#implementation-roadmap)
@@ -184,7 +181,7 @@ type CPUTopology // convenient type for querying and filtering CPUs
 
 Kubernetes will ship with three CPU manager policies. Only one policy is
 active at a time on a given node, chosen by the operator via Kubelet
-configuration. The three policies are **none**, **static** and **dynamic**.
+configuration. The two policies are **none**, and **static**.
 
 The active CPU manager policy is set through a new Kubelet
 configuration value `--cpu-manager-policy`. The default value is `none`.
@@ -347,42 +344,6 @@ func (p *staticPolicy) RemoveContainer(s State, containerID string) error {
        `floor(capacity.cpu - allocatable.cpu)` and the shared pool initially
        contains all CPUs in the system.
 
-#### Policy 3: "dynamic" cpuset control
-
-_TODO: Describe the policy._
-
-Capturing discussions from resource management meetings and proposal comments:
-
-Unlike the static policy, when the dynamic policy allocates exclusive CPUs to
-a container, the cpuset may change during the container's lifetime. If deemed
-necessary, we discussed providing a signal in the following way. We could
-project (a subset of) the CPU manager state into a volume visible to selected
-containers. User workloads could subscribe to update events in a normal Linux
-manner (e.g. inotify.)
-
-##### Implementation sketch
-
-```go
-func (p *dynamicPolicy) Start(s State) {
-	// TODO
-}
-
-func (p *dynamicPolicy) AddContainer(s State, pod *Pod, container *Container, containerID string) error {
-	// TODO
-}
-
-func (p *dynamicPolicy) RemoveContainer(s State, containerID string) error {
-	// TODO
-}
-```
-
-##### Example pod specs and interpretation
-
-| Pod                                        | Interpretation                 |
-| ------------------------------------------ | ------------------------------ |
-|                                            |                                |
-|                                            |                                |
-
 ## Operations and observability
 
 * Checkpointing assignments
@@ -433,9 +394,6 @@ func (p *dynamicPolicy) RemoveContainer(s State, containerID string) error {
 ### Later phases [TARGET: After Kubernetes v1.9]
 
 * Static policy also manages [cache allocation][cat] on supported platforms.
-* Dynamic policy is implemented.
-* Unit tests for dynamic policy pass.
-* e2e tests for dynamic policy pass.
 * Performance metrics for one or more plausible synthetic workloads show
   benefit over none policy.
 * Kubelet can discover "advanced" topology (NUMA).
